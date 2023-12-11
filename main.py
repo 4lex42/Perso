@@ -1,9 +1,10 @@
+import argparse
 import os
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
+
 import pyzipper
-import argparse
 
 
 class ZipFolderWithPassword:
@@ -14,17 +15,27 @@ class ZipFolderWithPassword:
         self.password = ""
 
     def get_user_input(self):
+        # get the inputs with GUI
         root = tk.Tk()
         root.withdraw()
 
         self.folder_path = filedialog.askdirectory(title="Sélectionnez le dossier à sécuriser")
+        if self.folder_path == "":
+            return False
         self.destination_folder = filedialog.askdirectory(title="Sélectionnez le dossier de destination")
+        if self.destination_folder == "":
+            return False
         self.zip_filename = simpledialog.askstring("Nom du fichier ZIP", "Entrez le nom du fichier ZIP")
+        if self.zip_filename == "":
+            return False
         self.password = simpledialog.askstring("Mot de passe", "Entrez le mot de passe")
+        if self.password == "":
+            return False
 
         root.destroy()
 
     def zip_folder(self):
+        # zip the folder
         try:
             zip_path = os.path.join(self.destination_folder, self.zip_filename)
             with pyzipper.AESZipFile(zip_path, 'w', compression=pyzipper.ZIP_DEFLATED,
@@ -47,6 +58,7 @@ class ZipFolderWithPassword:
             print(f"An error occurred: {e}")
 
     def sort_files_by_name(self):
+        # sort files by alphabetic
         try:
             # Liste tous les fichiers dans le dossier
             files = sorted(os.listdir(self.folder_path))
@@ -67,6 +79,7 @@ class CommandLineZipper:
         self.zip_handler.password = password
 
     def execute_zip_command(self):
+        # execute the zip
         try:
             self.zip_handler.zip_folder()
             print("Zip operation completed successfully.")
@@ -75,17 +88,23 @@ class CommandLineZipper:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Zip a folder with password protection.")
-    parser.add_argument("--folder_path", required=True, help="Path to the folder to be zipped.")
-    parser.add_argument("--destination_folder", required=True, help="Path to the destination folder.")
-    parser.add_argument("--zip_filename", required=True, help="Name of the ZIP file.")
-    parser.add_argument("--password", required=True, help="Password for ZIP file encryption.")
+    parser = argparse.ArgumentParser(description="Zip a folder with password protection. \n")
+    parser.add_argument("--folder_path", help="Path to the folder to be zipped. \n")
+    parser.add_argument("--destination_folder", help="Path to the destination folder. \n")
+    parser.add_argument("--zip_filename", help="Name of the ZIP file. \n")
+    parser.add_argument("--password", help="Password for ZIP file encryption. \n")
 
     args = parser.parse_args()
 
     if args.folder_path and args.destination_folder and args.zip_filename and args.password:
+        # Command line mode
         cmd_zipper = CommandLineZipper(args.folder_path, args.destination_folder, args.zip_filename, args.password)
         cmd_zipper.execute_zip_command()
+    else:
+        # GUI mode
+        zip_handler = ZipFolderWithPassword()
+        zip_handler.get_user_input()
+        zip_handler.zip_folder()
 
 
 if __name__ == "__main__":
