@@ -1,10 +1,9 @@
 import argparse
 import os
+import pyzipper
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
-
-import pyzipper
 
 
 class ZipFolderWithPassword:
