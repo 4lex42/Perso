@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
 import pyzipper
+import argparse
 
 
 class ZipFolderWithPassword:
@@ -57,13 +58,34 @@ class ZipFolderWithPassword:
             print(f"An error occurred while sorting files: {e}")
 
 
+class CommandLineZipper:
+    def __init__(self, folder_path, destination_folder, zip_filename, password):
+        self.zip_handler = ZipFolderWithPassword()
+        self.zip_handler.folder_path = folder_path
+        self.zip_handler.destination_folder = destination_folder
+        self.zip_handler.zip_filename = zip_filename
+        self.zip_handler.password = password
+
+    def execute_zip_command(self):
+        try:
+            self.zip_handler.zip_folder()
+            print("Zip operation completed successfully.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+
 def main():
-    try:
-        zip_handler = ZipFolderWithPassword()
-        zip_handler.get_user_input()
-        zip_handler.zip_folder()
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    parser = argparse.ArgumentParser(description="Zip a folder with password protection.")
+    parser.add_argument("--folder_path", required=True, help="Path to the folder to be zipped.")
+    parser.add_argument("--destination_folder", required=True, help="Path to the destination folder.")
+    parser.add_argument("--zip_filename", required=True, help="Name of the ZIP file.")
+    parser.add_argument("--password", required=True, help="Password for ZIP file encryption.")
+
+    args = parser.parse_args()
+
+    if args.folder_path and args.destination_folder and args.zip_filename and args.password:
+        cmd_zipper = CommandLineZipper(args.folder_path, args.destination_folder, args.zip_filename, args.password)
+        cmd_zipper.execute_zip_command()
 
 
 if __name__ == "__main__":
