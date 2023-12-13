@@ -6,6 +6,53 @@ from tkinter import filedialog
 from tkinter import simpledialog
 
 
+class UserInterface:
+    def __init__(self):
+        """
+        Initialize UserInterface instance.
+
+        PRE: None
+        POST: Initializes the instance.
+        """
+        self.zip_handler = ZipFolderWithPassword()
+
+    def run(self, args=None):
+        """
+        Run the user interface based on the provided arguments.
+
+        PRE: None
+        POST: If command-line arguments are provided, it executes the zip operation in command-line mode.
+              If no command-line arguments are provided, it initiates the GUI mode
+              to collect user input and perform the zip operation.
+        """
+        parser = argparse.ArgumentParser(description="Zip a folder with password protection. \n")
+        parser.add_argument("--folder_path", help="Path to the folder to be zipped. \n")
+        parser.add_argument("--destination_folder", help="Path to the destination folder. \n")
+        parser.add_argument("--zip_filename", help="Name of the ZIP file. \n")
+        parser.add_argument("--password", help="Password for ZIP file encryption. \n")
+
+        args = parser.parse_args(args)
+
+        if args.folder_path and args.destination_folder and args.zip_filename and args.password:
+            # Command line mode
+            cmd_zipper = CommandLineZipper(args.folder_path, args.destination_folder, args.zip_filename, args.password)
+            cmd_zipper.execute_zip_command()
+        else:
+            # GUI mode
+            self.gui_mode()
+
+    def gui_mode(self):
+        """
+        Run the GUI mode to collect user input and perform the zip operation.
+
+        PRE: None
+        POST: None
+        """
+        success = self.zip_handler.get_user_input()
+        if success:
+            self.zip_handler.zip_folder()
+
+
 class ZipFolderWithPassword:
     def __init__(self):
         """
@@ -123,35 +170,6 @@ class CommandLineZipper:
             print(f"An error occurred: {e}")
 
 
-def main():
-    """
-    Main entry point for the script.
-
-    PRE: None
-    POST: If command-line arguments (folder_path, destination_folder, zip_filename, and password)
-          are provided, it executes the zip operation in command-line mode.
-          If no command-line arguments are provided, it initiates the GUI mode
-          to collect user input and perform the zip operation.
-    """
-    parser = argparse.ArgumentParser(description="Zip a folder with password protection. \n")
-    parser.add_argument("--folder_path", help="Path to the folder to be zipped. \n")
-    parser.add_argument("--destination_folder", help="Path to the destination folder. \n")
-    parser.add_argument("--zip_filename", help="Name of the ZIP file. \n")
-    parser.add_argument("--password", help="Password for ZIP file encryption. \n")
-
-    args = parser.parse_args()
-
-    if args.folder_path and args.destination_folder and args.zip_filename and args.password:
-        # Command line mode
-        cmd_zipper = CommandLineZipper(args.folder_path, args.destination_folder, args.zip_filename, args.password)
-        cmd_zipper.execute_zip_command()
-    else:
-        # GUI mode
-        zip_handler = ZipFolderWithPassword()
-        success = zip_handler.get_user_input()
-        if success:
-            zip_handler.zip_folder()
-
-
 if __name__ == "__main__":
-    main()
+    ui = UserInterface()
+    ui.run()
