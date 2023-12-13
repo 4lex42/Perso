@@ -48,24 +48,9 @@ class UserInterface:
         PRE: None
         POST: None
         """
-        success = self.zip_handler.get_user_input()
+        success = self.get_user_input()
         if success:
             self.zip_handler.zip_folder()
-
-
-class ZipFolderWithPassword:
-    def __init__(self):
-        """
-        Initialize ZipFolderWithPassword instance.
-
-        PRE: None
-        POST: Initializes the instance with empty strings for folder_path,
-              destination_folder, zip_filename, and password.
-        """
-        self.folder_path = ""
-        self.destination_folder = ""
-        self.zip_filename = ""
-        self.password = ""
 
     def get_user_input(self):
         """
@@ -77,21 +62,50 @@ class ZipFolderWithPassword:
         root = tk.Tk()
         root.withdraw()
 
-        self.folder_path = filedialog.askdirectory(title="Sélectionnez le dossier à sécuriser")
-        if self.folder_path == "":
+        self.zip_handler.folder_path = filedialog.askdirectory(title="Sélectionnez le dossier à sécuriser")
+        if self.zip_handler.folder_path == "":
             return False
-        self.destination_folder = filedialog.askdirectory(title="Sélectionnez le dossier de destination")
-        if self.destination_folder == "":
+        self.zip_handler.destination_folder = filedialog.askdirectory(title="Sélectionnez le dossier de destination")
+        if self.zip_handler.destination_folder == "":
             return False
-        self.zip_filename = simpledialog.askstring("Nom du fichier ZIP", "Entrez le nom du fichier ZIP")
-        if self.zip_filename == "":
+        self.zip_handler.zip_filename = simpledialog.askstring("Nom du fichier ZIP", "Entrez le nom du fichier ZIP")
+        if self.zip_handler.zip_filename == "":
             return False
-        self.password = simpledialog.askstring("Mot de passe", "Entrez le mot de passe")
-        if self.password == "":
+        self.zip_handler.password = simpledialog.askstring("Mot de passe", "Entrez le mot de passe")
+        if self.zip_handler.password == "":
             return False
 
         root.destroy()
         return True
+
+
+class ZipFolderWithPassword:
+    def __init__(self):
+        """
+        Initialize ZipFolderWithPassword instance.
+
+        PRE: None
+        POST: Initializes the instance with empty strings for folder_path,
+              destination_folder, zip_filename, and password.
+        <---------------------------------------------------------------------------->
+        IF ENCAPSULATION:
+        def __init__(self):
+            self._folder_path = ""
+            self._destination_folder = ""
+            self._zip_filename = ""
+            self._password = ""
+
+        def set_folder_path(self, folder_path):
+            self._folder_path = folder_path
+
+        def get_folder_path(self):
+            return self._folder_path
+        <---------------------------------------------------------------------------->
+        """
+        self.folder_path = ""
+        self.destination_folder = ""
+        self.zip_filename = ""
+        self.password = ""
 
     def zip_folder(self):
         """
@@ -120,24 +134,6 @@ class ZipFolderWithPassword:
 
         except Exception as e:
             print(f"An error occurred: {e}")
-
-    def sort_files_by_name(self):
-        """
-        Sort files alphabetically.
-
-        PRE: Assumes that get_user_input has been called successfully.
-        POST: Returns a list of file paths sorted alphabetically.
-              Prints an error message if an exception occurs during sorting.
-        """
-        try:
-            # Liste tous les fichiers dans le dossier
-            files = sorted(os.listdir(self.folder_path))
-            sorted_files = [os.path.join(self.folder_path, file) for file in files if
-                            os.path.isfile(os.path.join(self.folder_path, file))]
-            return sorted_files
-
-        except Exception as e:
-            print(f"An error occurred while sorting files: {e}")
 
 
 class CommandLineZipper:
