@@ -58,22 +58,26 @@ class UserInterface:
 
         PRE: None
         POST: Returns True if all inputs are received; False otherwise.
+        RAISE: ValueError if any of the required input values is not provided.
         """
         root = tk.Tk()
         root.withdraw()
 
         self.zip_handler.folder_path = filedialog.askdirectory(title="Sélectionnez le dossier à sécuriser")
-        if self.zip_handler.folder_path == "":
-            return False
+        if not self.zip_handler.folder_path:
+            raise ValueError("Le chemin du dossier à sécuriser doit être spécifié.")
+
         self.zip_handler.destination_folder = filedialog.askdirectory(title="Sélectionnez le dossier de destination")
-        if self.zip_handler.destination_folder == "":
-            return False
+        if not self.zip_handler.destination_folder:
+            raise ValueError("Le chemin du dossier de destination doit être spécifié.")
+
         self.zip_handler.zip_filename = simpledialog.askstring("Nom du fichier ZIP", "Entrez le nom du fichier ZIP")
-        if self.zip_handler.zip_filename == "":
-            return False
+        if not self.zip_handler.zip_filename:
+            raise ValueError("Le nom du fichier ZIP doit être spécifié.")
+
         self.zip_handler.password = simpledialog.askstring("Mot de passe", "Entrez le mot de passe")
-        if self.zip_handler.password == "":
-            return False
+        if not self.zip_handler.password:
+            raise ValueError("Le mot de passe doit être spécifié.")
 
         root.destroy()
         return True
@@ -113,27 +117,30 @@ class ZipFolderWithPassword:
 
         PRE: Assumes that get_user_input has been called successfully.
         POST: Prints an error message if an exception occurs during zipping.
+        RAISE: ValueError if any of the required parameters for ZIP compression is not correctly defined.
+               RuntimeError if any other error occurs during zipping.
         """
+        if not (self.folder_path and self.destination_folder and self.zip_filename and self.password):
+            raise ValueError("Tous les paramètres requis pour la compression ZIP doivent être définis correctement.")
+
         try:
             zip_path = os.path.join(self.destination_folder, self.zip_filename)
             with pyzipper.AESZipFile(zip_path, 'w', compression=pyzipper.ZIP_DEFLATED,
                                      encryption=pyzipper.WZ_AES) as zip_file:
                 zip_file.pwd = self.password.encode('utf-8')  # Set the password directly
 
-                # Parcours tous les fichiers du dossier
                 for foldername, subfolders, filenames in os.walk(self.folder_path):
                     for filename in filenames:
                         file_path = os.path.join(foldername, filename)
                         arcname = os.path.relpath(file_path, self.folder_path)
 
-                        # Vérifie si le fichier existe déjà dans l'archive et le remplace
                         if arcname in zip_file.NameToInfo:
                             zip_file.replace(arcname, file_path)
                         else:
                             zip_file.write(file_path, arcname)
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            raise RuntimeError(f"An error occurred during zipping: {e}")
 
 
 class CommandLineZipper:
@@ -157,15 +164,20 @@ class CommandLineZipper:
 
         PRE: Assumes that command-line arguments are provided.
         POST: Prints an error message if an exception occurs during zipping.
-              Prints a success message if the operation is completed successfully.
+        RAISE: RuntimeError if any error occurs during zipping.
         """
         try:
             self.zip_handler.zip_folder()
             print("Zip operation completed successfully.")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            raise RuntimeError(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
     ui = UserInterface()
-    ui.run()
+    try:
+        ui.run()
+    except ValueError as ve:
+        print(f"ValueError: {ve}")
+    except RuntimeError as re:
+        print(f"RuntimeError: {re}")
